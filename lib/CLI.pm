@@ -38,7 +38,7 @@ sub run {
 sub cmd_build {
     my($self,$target) = @_;
 
-    _build(_search_recently());
+    _build(_search_recently_day());
 }
 
 sub cmd_build_open {
@@ -83,7 +83,7 @@ sub _y_m_d {
     ($t->strftime('%Y'), $t->strftime('%m'), $t->strftime('%d'));
 }
 
-sub _search_recently {
+sub _search_recently_day {
     my($self,$root_directory_name) = @_;
     my ($y,$m,$d) = _y_m_d();
     my $root_dir = path($root_directory_name.'/'.$y.'/'.$m);
