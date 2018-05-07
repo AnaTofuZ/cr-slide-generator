@@ -8,6 +8,7 @@ use DDP { deparse => 1 };
 use Smart::Options;
 use Smart::Options::Declare;
 use Time::Piece;
+use Time::Seconds;
 use Capture::Tiny qw/capture/;
 use Path::Tiny;
 use File::chdir;
@@ -29,10 +30,10 @@ sub run {
            upload => Smart::Options->new(),
            memo => Smart::Options->new(),
            edit => Smart::Options->new(),
+           zip => Smart::Options->new(),
      );
 
     my $result = $opt->parse(@args);
-    p $result;
     my $command = $result->{command} // "open";
 
     my $option = $result->{cmd_option}->{f} || $result->{cmd_option}->{file} || 0;
@@ -160,6 +161,30 @@ sub cmd_edit {
     my @targets = $recent_day->children(qr/\.md$/);
     my $target = pop @targets;
     exec $ENV{EDITOR},($target->realpath);
+}
+
+sub cmd_zip {
+    my ($self) = @_;
+    my $recent_day = $self->_search_recently_day();
+    my $t = localtime;
+    my $zip = $recent_day->child('zip.txt')->touch->opena;
+
+    $t-= ONE_WEEK;
+
+    for(1..7){
+       my($y,$m,$d)=($t->strftime('%Y'), $t->strftime('%m'), $t->strftime('%d'));
+       my $memo = path($self->root_dir)->child($y)->child($m)->child($d)->child('memo.txt');
+
+       unless ($memo->exists) {
+           $t += ONE_DAY;
+           next;
+       }
+
+       say $zip "$y-$m-$d----";
+       say $zip $memo->slurp;
+       say $zip "----------";
+       $t += ONE_DAY;
+    }
 }
 
 
