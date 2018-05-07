@@ -28,6 +28,7 @@ sub run {
            'build_open' => Smart::Options->new->default('target' => 'slide.md'),
            upload => Smart::Options->new(),
            memo => Smart::Options->new(),
+           edit => Smart::Options->new(),
      );
 
     my $result = $opt->parse(@args);
@@ -151,6 +152,14 @@ sub cmd_memo {
     my ($y,$m,$d) = _y_m_d();
     my $memo = path($self->root_dir)->child($y)->child($m)->child($d)->child('memo.txt')->touchpath;
     exec $ENV{EDITOR},($memo->realpath);
+}
+
+sub cmd_edit {
+    my ($self) = @_;
+    my $recent_day = $self->_search_recently_day();
+    my @targets = $recent_day->children(qr/\.md$/);
+    my $target = pop @targets;
+    exec $ENV{EDITOR},($target->realpath);
 }
 
 
