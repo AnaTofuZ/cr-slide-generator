@@ -27,6 +27,7 @@ sub run {
            open   => Smart::Options->new->default('target' => 'slide.md'),
            'build_open' => Smart::Options->new->default('target' => 'slide.md'),
            upload => Smart::Options->new(),
+           memo => Smart::Options->new(),
      );
 
     my $result = $opt->parse(@args);
@@ -144,5 +145,13 @@ sub _search_recently_day {
     my $date = shift @{ [sort { $b->stat->mtime <=> $a->stat->mtime } $root_dir->children]};
     return $date;
 }
+
+sub cmd_memo {
+    my ($self) = @_;
+    my ($y,$m,$d) = _y_m_d();
+    my $memo = path($self->root_dir)->child($y)->child($m)->child($d)->child('memo.txt')->touchpath;
+    exec $ENV{EDITOR},($memo->realpath);
+}
+
 
 1;
