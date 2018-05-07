@@ -3,3 +3,4 @@ requires 'Class::Tiny';
 requires 'Path::Tiny';
 requires 'File::chdir';
 requires 'Capture::Tiny';
+requires 'File::chdir';

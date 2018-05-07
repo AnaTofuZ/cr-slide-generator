@@ -10,6 +10,7 @@ use Smart::Options::Declare;
 use Time::Piece;
 use Capture::Tiny qw/capture/;
 use Path::Tiny;
+use File::chdir;
 use Carp qw/croak/;
 
 use Class::Tiny qw/ template root_dir/;
@@ -44,7 +45,23 @@ sub cmd_new {
 sub cmd_build {
     my($self,$target) = @_;
 
-    _build(_search_recently_day());
+    $self->_build($self->_search_recently_day());
+}
+
+sub _build {
+    my ($self,$dir,$target) = @_;
+
+    $target //= 'slide.md';
+
+    say "[AUTO] BUILD at $dir/$target";
+
+    local $CWD = $dir;
+
+    my ($stdout,$stderr,$exit) = capture {
+        system("slideshow build ${target} -t s6cr");
+    };
+
+    croak "Perl can't build...." if $stderr;
 }
 
 sub cmd_build_open {
@@ -93,9 +110,9 @@ sub _search_recently_day {
     my($self) = @_;
     my ($y,$m,$d) = _y_m_d();
     my $root_dir = path($self->root_dir.'/'.$y.'/'.$m);
+    #my $root_dir = path($self->root_dir)->child($y.'/'.$m);
 
     my $date = shift @{ [sort { $b->stat->mtime <=> $a->stat->mtime } $root_dir->children]};
-
     return $date;
 }
 
