@@ -27,7 +27,6 @@ sub run {
            upload => Smart::Options->new(),
      );
 
-    my $result  = $opt->parse(@args);
     my $command = $result->{command} // "open";
 
     my $call= $self->can("cmd_$command");
@@ -38,7 +37,7 @@ sub run {
 sub cmd_new {
     my ($self) = @_;
     my ($y,$m,$d) = _y_m_d();
-    my $slide = path($self->root_dir)->child($y .'/'. $m .'/'. $d .'/'.'slide.md')->touchpath;
+    my $slide = path($self->root_dir)->child($y)->child($m)->child($d)->child('slide.md')->touchpath;
     path($self->template)->copy($slide);
 }
 
@@ -69,7 +68,14 @@ sub cmd_build_open {
 }
 
 sub cmd_open {
-    say 'hoge';
+    my($self) = @_;
+    my $target = $self->_search_recently_day()->child('slide.html');
+
+    if($target->realpath){
+        system 'open', ($target->realpath);
+    } else {
+        croak 'dont found slide.html';
+    }
 }
 
 sub cmd_upload {
@@ -109,8 +115,7 @@ sub _y_m_d {
 sub _search_recently_day {
     my($self) = @_;
     my ($y,$m,$d) = _y_m_d();
-    my $root_dir = path($self->root_dir.'/'.$y.'/'.$m);
-    #my $root_dir = path($self->root_dir)->child($y.'/'.$m);
+    my $root_dir = path($self->root_dir)->child($y)->child($m);
 
     my $date = shift @{ [sort { $b->stat->mtime <=> $a->stat->mtime } $root_dir->children]};
     return $date;
