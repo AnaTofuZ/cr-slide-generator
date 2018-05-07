@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Data::Dumper;
+use DDP { deparse => 1 };
 
 use Smart::Options;
 use Smart::Options::Declare;
@@ -12,13 +12,14 @@ use Capture::Tiny qw/capture/;
 use Path::Tiny;
 use Carp qw/croak/;
 
-use Class::Tiny;
+use Class::Tiny qw/ template root_dir/;
 use feature 'say';
 
 sub run {
     my($self,@args) = @_;
     my $opt = Smart::Options->new;
     $opt->subcmd(
+           new    => Smart::Options->new(),
            build  => Smart::Options->new(),
            open   => Smart::Options->new->default('target' => 'slide.md'),
            'build_open' => Smart::Options->new->default('target' => 'slide.md'),
@@ -27,13 +28,18 @@ sub run {
 
     my $result  = $opt->parse(@args);
     my $command = $result->{command} // "open";
-    print Dumper $result;
 
     my $call= $self->can("cmd_$command");
     croak 'undefine subcommand' unless $call;
     $self->$call();
 }
 
+sub cmd_new {
+    my ($self) = @_;
+    my ($y,$m,$d) = _y_m_d();
+    my $slide = path($self->root_dir)->child($y .'/'. $m .'/'. $d .'/'.'slide.md')->touchpath;
+    path($self->template)->copy($slide);
+}
 
 sub cmd_build {
     my($self,$target) = @_;
@@ -84,9 +90,9 @@ sub _y_m_d {
 }
 
 sub _search_recently_day {
-    my($self,$root_directory_name) = @_;
+    my($self) = @_;
     my ($y,$m,$d) = _y_m_d();
-    my $root_dir = path($root_directory_name.'/'.$y.'/'.$m);
+    my $root_dir = path($self->root_dir.'/'.$y.'/'.$m);
 
     my $date = shift @{ [sort { $b->stat->mtime <=> $a->stat->mtime } $root_dir->children]};
 

@@ -5,4 +5,4 @@ use warnings;
 use lib 'lib';
 use CLI;
 
-exit CLI->new->run(@ARGV);
+CLI->new(template => $ENV{CR_TEMPLATE}, root_dir => $ENV{CR_ROOT_DIR})->run(@ARGV);
