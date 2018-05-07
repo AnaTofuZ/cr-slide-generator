@@ -78,9 +78,9 @@ sub cmd_build_open {
     my($self,$target) = @_;
     $self->cmd_build($target);
     if($target){
-        $target =~ s/\.html$/\.md/;
+        $target =~ s/\.md$/\.html/;
     }
-    $self->cmd_open($target);
+    $self->cmd_open(path($target));
 }
 
 sub cmd_open {
