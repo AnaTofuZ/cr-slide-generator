@@ -18,7 +18,9 @@ use feature 'say';
 
 sub run {
     my($self,@args) = @_;
-    my $opt = Smart::Options->new;
+    my $opt = Smart::Options->new->options(
+        file => { describe => 'target file', alias => 'f'}
+    );
     $opt->subcmd(
            new    => Smart::Options->new(),
            build  => Smart::Options->new(),
@@ -27,11 +29,15 @@ sub run {
            upload => Smart::Options->new(),
      );
 
+    my $result = $opt->parse(@args);
+    p $result;
     my $command = $result->{command} // "open";
+
+    my $option = $result->{cmd_option}->{f} || $result->{cmd_option}->{file} || 0;
 
     my $call= $self->can("cmd_$command");
     croak 'undefine subcommand' unless $call;
-    $self->$call();
+    $self->$call($option);
 }
 
 sub cmd_new {
@@ -44,7 +50,12 @@ sub cmd_new {
 sub cmd_build {
     my($self,$target) = @_;
 
-    $self->_build($self->_search_recently_day());
+    if ($target){
+        $target = path($target);
+        $self->_build($target->dirname,$target->basename);
+    } else {
+        $self->_build($self->_search_recently_day());
+    }
 }
 
 sub _build {
@@ -65,16 +76,29 @@ sub _build {
 
 sub cmd_build_open {
     my($self,$target) = @_;
+    $self->cmd_build($target);
+    if($target){
+        $target =~ s/\.html$/\.md/;
+    }
+    $self->cmd_open($target);
 }
 
 sub cmd_open {
-    my($self) = @_;
-    my $target = $self->_search_recently_day()->child('slide.html');
+    my($self,$slide) = @_;
+    
+    my $target;
+
+    if ($slide){
+       $target = $slide;
+    } else {
+       $slide  = 'slide.html';
+       $target = $self->_search_recently_day()->child($slide);
+    }
 
     if($target->realpath){
-        system 'open', ($target->realpath);
+       system 'open', ($target->realpath);
     } else {
-        croak 'dont found slide.html';
+       croak 'dont found slide.html';
     }
 }
 
