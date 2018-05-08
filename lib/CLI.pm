@@ -164,10 +164,10 @@ sub cmd_edit {
 }
 
 sub cmd_zip {
-    my ($self) = @_;
+    my ($self)     = @_;
     my $recent_day = $self->_search_recently_day();
-    my $t = localtime;
-    my $zip = $recent_day->child('zip.txt')->touch->opena;
+    my $t          = localtime;
+    my $zip        = $recent_day->child('zip.txt')->touch->opena;
 
     $t-= ONE_WEEK;
 
