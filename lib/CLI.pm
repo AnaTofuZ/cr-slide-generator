@@ -81,14 +81,17 @@ sub cmd_build_open {
     my($self,$target) = @_;
     $self->cmd_build($target);
     if($target){
-        $target =~ s/\.md$/\.html/;
+        $target     =~ s/\.md$/\.html/;
+    } else {
+       my @targets  = $self->_search_recently_day()->children(qr/(?<!pdf)\.html$/);
+       $target      = pop @targets;
     }
     $self->cmd_open(path($target));
 }
 
 sub cmd_open {
     my($self,$slide) = @_;
-    
+
     my $target;
 
     if ($slide){
