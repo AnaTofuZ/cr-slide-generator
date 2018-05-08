@@ -23,30 +23,30 @@ sub run {
         file => { describe => 'target file', alias => 'f'}
     );
     $opt->subcmd(
-           new    => Smart::Options->new(),
-           build  => Smart::Options->new(),
-           open   => Smart::Options->new->default('target' => 'slide.md'),
-           'build_open' => Smart::Options->new->default('target' => 'slide.md'),
-           upload => Smart::Options->new(),
-           memo => Smart::Options->new(),
-           edit => Smart::Options->new(),
-           zip => Smart::Options->new(),
+           new          => Smart::Options->new(),
+           build        => Smart::Options->new(),
+           open         => Smart::Options->new->default('target' => 'slide.md'),
+           build_open   => Smart::Options->new->default('target' => 'slide.md'),
+           upload       => Smart::Options->new(),
+           memo         => Smart::Options->new(),
+           edit         => Smart::Options->new(),
+           zip          => Smart::Options->new(),
      );
 
-    my $result = $opt->parse(@args);
+    my $result  = $opt->parse(@args);
     my $command = $result->{command} // "open";
 
-    my $option = $result->{cmd_option}->{f} || $result->{cmd_option}->{file} || 0;
+    my $option  = $result->{cmd_option}->{f} || $result->{cmd_option}->{file} || 0;
 
-    my $call= $self->can("cmd_$command");
+    my $call    = $self->can("cmd_$command");
     croak 'undefine subcommand' unless $call;
     $self->$call($option);
 }
 
 sub cmd_new {
-    my ($self) = @_;
+    my ($self)    = @_;
     my ($y,$m,$d) = _y_m_d();
-    my $slide = path($self->root_dir)->child($y)->child($m)->child($d)->child('slide.md')->touchpath;
+    my $slide     = path($self->root_dir)->child($y)->child($m)->child($d)->child('slide.md')->touchpath;
     path($self->template)->copy($slide);
 }
 
@@ -140,26 +140,26 @@ sub _y_m_d {
 }
 
 sub _search_recently_day {
-    my($self) = @_;
+    my ($self)    = @_;
     my ($y,$m,$d) = _y_m_d();
-    my $root_dir = path($self->root_dir)->child($y)->child($m);
+    my $root_dir  = path($self->root_dir)->child($y)->child($m);
 
-    my $date = shift @{ [sort { $b->stat->mtime <=> $a->stat->mtime } $root_dir->children]};
+    my $date      = shift @{ [sort { $b->stat->mtime <=> $a->stat->mtime } $root_dir->children]};
     return $date;
 }
 
 sub cmd_memo {
-    my ($self) = @_;
+    my ($self)    = @_;
     my ($y,$m,$d) = _y_m_d();
-    my $memo = path($self->root_dir)->child($y)->child($m)->child($d)->child('memo.txt')->touchpath;
+    my $memo      = path($self->root_dir)->child($y)->child($m)->child($d)->child('memo.txt')->touchpath;
     exec $ENV{EDITOR},($memo->realpath);
 }
 
 sub cmd_edit {
-    my ($self) = @_;
+    my ($self)     = @_;
     my $recent_day = $self->_search_recently_day();
-    my @targets = $recent_day->children(qr/\.md$/);
-    my $target = pop @targets;
+    my @targets    = $recent_day->children(qr/\.md$/);
+    my $target     = pop @targets;
     exec $ENV{EDITOR},($target->realpath);
 }
 
@@ -171,7 +171,7 @@ sub cmd_zip {
 
     $t-= ONE_WEEK;
 
-    for(1..7){
+    for(0..7){
        my($y,$m,$d)=($t->strftime('%Y'), $t->strftime('%m'), $t->strftime('%d'));
        my $memo = path($self->root_dir)->child($y)->child($m)->child($d)->child('memo.txt');
 
@@ -186,6 +186,5 @@ sub cmd_zip {
        $t += ONE_DAY;
     }
 }
-
 
 1;
